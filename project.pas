@@ -35,7 +35,9 @@ type
     velocity: integer;
     function isOnTopOfGameObject(l:GameObject):boolean;
     begin
-      result:= (l.PtInside(self.Center.X,  self.Center.Y - self.Height div 2 - 15)) 
+      result:= (l.PtInside(self.Center.X-self.Width div 2,  self.Center.Y - self.Height div 2 - 15)) 
+       or (l.PtInside(self.Center.X,  self.Center.Y - self.Height div 2 - 15))
+       or (l.PtInside(self.Center.X+self.Width div 2,  self.Center.Y - self.Height div 2 - 15));
     end;
     procedure ApplyGravity();
     begin
@@ -61,6 +63,41 @@ type
     
   end;
   
+  Enemy=class(GameObject, Gravable)
+  private
+   grounded:Boolean;
+  public
+   velocity:Integer;
+   function isOnTopOfGameObject(l:GameObject):boolean;
+     begin
+       result:= (l.PtInside(self.Center.X-self.Width div 2,  self.Center.Y - self.Height div 2 - 15)) 
+        or (l.PtInside(self.Center.X,  self.Center.Y - self.Height div 2 - 15))
+        or (l.PtInside(self.Center.X+self.Width div 2,  self.Center.Y - self.Height div 2 - 15));
+     end;      
+   procedure ApplyGravity();
+    begin
+     self.dy -= Gravity;
+    end;
+   procedure Landing(y:integer);
+    begin
+     self.dy:=0;  
+     self.MoveTo(self.Position.X, y + self.Height);
+     self.grounded:= true;
+    end;
+   procedure Jump();
+    begin
+      self.dy:=20;
+      self.grounded:=false;
+    end;
+//   procedure Move();
+   constructor Create(x,y:integer);
+    begin
+       inherited Create(x, y, 50, 50,GColor.Beige);
+       velocity:=1;
+    end;
+   property isGrounded: boolean read grounded write grounded;
+  end;
+  
   Ground = class(GameObject, Solidable)
   public 
     function isOnTopOfGameObject(l:GameObject):boolean;
@@ -72,9 +109,11 @@ type
       inherited Create(x,y,w,h,GColor.Aqua);
     end;
   end;
+  
 var
   h: Hero;
   floor: Ground;
+  e:Enemy;
  
 
 procedure ApplyGravity();
@@ -154,6 +193,12 @@ begin
   h.velocity := 10;
   solidObjects.Add(h);
   gravableObjects.Add(h);
+  
+  //Enemy
+  e:=new Enemy(30,200);
+  e.velocity:=0;
+  solidObjects.Add(e);
+  gravableObjects.Add(e);
   
   //Платформы
   solidObjects.Add(new Ground(0,0,Window.Width,50));
