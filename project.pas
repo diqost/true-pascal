@@ -218,6 +218,7 @@ begin
     CheckCollisions();
     ApplyGravity();
     CheckControls(); 
+    If e.grounded then e.Jump;
     for i:integer:= 0 to Objects.Count - 1 do
       Objects[i].Move();
       
